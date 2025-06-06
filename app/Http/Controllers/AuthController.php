@@ -26,6 +26,8 @@ class AuthController extends Controller
             'password' => bcrypt($fields['password']),
 
         ]);
+        $user->assignRole('usuario');
+
 
         $token = $user->createToken('myapptoken')->plainTextToken;
 
@@ -52,11 +54,14 @@ class AuthController extends Controller
         }
 
         $request->session()->regenerate();
+        $user = Auth::user();
 
         return response()->json([
             'user' => $request->user(),
-            'message' => 'Inicio de sesión exitoso',
+            'roles' => $user->getRoleNames('name'),
+
         ]);
+
     }
 
     public function loginWithFirebase(Request $request)
@@ -76,20 +81,28 @@ class AuthController extends Controller
             $uid = $verifiedIdToken->claims()->get('sub');
 
             $firebaseUser = $auth->getUser($uid);
+            $user = User::where('email', $firebaseUser->email)->first();
 
-            $user = \App\Models\User::updateOrCreate(
-                ['email' => $firebaseUser->email],
-                [
+            if (!$user) {
+                // Usuario nuevo, lo creamos
+                $user = User::create([
+                    'email' => $firebaseUser->email,
                     'name' => $firebaseUser->displayName ?? 'Usuario Firebase',
                     'firebase_uid' => $firebaseUser->uid,
                     'password' => bcrypt(Str::random(40)),
-                ]
-            );
+                ]);
 
+                $user->assignRole('usuario');
+            } else {
+                $user->firebase_uid = $firebaseUser->uid;
+                $user->name = $firebaseUser->displayName ?? $user->name;
+                $user->save();
+
+            }
             Auth::login($user);
             $request->session()->regenerate();
 
-            return response()->json(['user' => $user]);
+            return response()->json(['user' => $user, 'roles' => $user->getRoleNames(),]);
         } catch (\Throwable $e) {
             return response()->json(['error' => 'Token inválido o error interno'], 500);
         }

@@ -18,10 +18,11 @@ Route::controller(AuthController::class)->group(function () {
 });
 
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
-
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    $user = $request->user();
+    $user->roles = $user->getRoleNames();
+    return $user;
+});
 Route::middleware('auth:sanctum')->get('/test', function () {
     return response()->json(['message' => 'ola']);
 });
