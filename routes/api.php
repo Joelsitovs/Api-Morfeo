@@ -1,13 +1,10 @@
 <?php
 
 use Illuminate\Http\Request;
-use Kreait\Firebase\Factory;
+use App\Models\Material;
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AuthController;
-use Illuminate\Support\Facades\Session;
 
 
 Route::controller(AuthController::class)->group(function () {
@@ -17,6 +14,14 @@ Route::controller(AuthController::class)->group(function () {
     Route::post('/logout', 'logout')->middleware('auth:sanctum');
 });
 
+Route::get('/materials', function () {
+    return Material::orderBy('order')
+        ->select('id', 'name', 'slug', 'short_description', 'image_url')
+        ->get();
+});
+Route::get('/materials/{slug}', function ($slug) {
+    return Material::where('slug', $slug)->firstOrFail();
+});
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     $user = $request->user();
