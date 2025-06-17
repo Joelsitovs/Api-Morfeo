@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\WelcomeUserMail;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 use Kreait\Firebase\Factory;
@@ -15,28 +16,27 @@ class AuthController extends Controller
     function register(Request $request)
     {
         $fields = $request->validate([
-            'name' => 'required|string',
-            'email' => 'required|string|unique:users,email',
+            'email' => 'required|string|email|unique:users,email',
             'password' => ['required'],
         ]);
 
         $user = User::create([
-            'name' => $fields['name'],
+            'name' => explode('@', $fields['email'])[0],
             'email' => $fields['email'],
             'password' => bcrypt($fields['password']),
-
         ]);
+
         $user->assignRole('usuario');
+        Mail::to($user->email)->send(new WelcomeUserMail($user));
+
+        Auth::login($user);
 
 
-        $token = $user->createToken('myapptoken')->plainTextToken;
-
-        $response = [
+        return response([
             'user' => $user,
-            'token' => $token,
-        ];
+            'roles' => $user->getRoleNames(),
+        ], 201);
 
-        return response($response, 201);
     }
 
 
