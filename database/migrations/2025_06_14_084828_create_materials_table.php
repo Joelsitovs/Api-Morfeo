@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('image_url')->nullable();
             $table->json('keywords')->nullable(); // para SEO
             $table->integer('order')->default(0);
+            $table->decimal('price', 8, 2)->default(0.30);
             $table->timestamps();
         });
     }

@@ -16,9 +16,11 @@ class Material extends Model
         'image_url',
         'keywords',
         'order',
+        'price'
     ];
     protected $casts = [
         'keywords' => 'array',
+        'price' => 'float',
     ];
 
 
