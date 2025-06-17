@@ -39,6 +39,8 @@ Route::get('/debug-test', function () {
 });
 
 
+Route::post('/orders', [OrderController::class, 'store']);
+
 Route::post('/webhook', [WebhookController::class, 'handle']);
 
 Route::middleware('auth:sanctum')->get('/orders', [OrderController::class, 'index']);
