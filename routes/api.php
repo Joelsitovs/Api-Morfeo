@@ -52,4 +52,7 @@ Route::get('/materials', function () {
 Route::get('/materials/{slug}', function ($slug) {
     return Material::where('slug', $slug)->firstOrFail();
 });
+Route::get('/ping', function () {
+    return response()->json(['pong' => true]);
+});
 
